@@ -2,6 +2,7 @@ package artifactory
 
 import (
 	"fmt"
+	"os"
 
 	"context"
 	"github.com/atlassian/go-artifactory/pkg/artifactory"
@@ -87,10 +88,13 @@ func resourceArtifactoryRemoteRepository() *schema.Resource {
 				Optional: true,
 			},
 			"password": {
-				Type:      schema.TypeString,
-				Optional:  true,
-				Sensitive: true,
+				Type:     schema.TypeString,
+				Optional: true,
+				//Sensitive: true,
 				StateFunc: GetMD5Hash,
+				//DiffSuppressFunc: func(k, old, new string, d *schema.ResourceData) bool {
+				//	return GetMD5Hash(old) == new
+				//},
 			},
 			"proxy": {
 				Type:     schema.TypeString,
@@ -268,7 +272,7 @@ func marshalRemoteRepository(repo *artifactory.RemoteRepository, d *schema.Resou
 	d.Set("blacked_out", repo.BlackedOut)
 	d.Set("url", repo.Url)
 	d.Set("username", repo.Username)
-	d.Set("password", GetMD5Hash(*repo.Password))
+	d.Set("password", *repo.Password)
 	d.Set("proxy", repo.Proxy)
 	d.Set("hard_fail", repo.HardFail)
 	d.Set("offline", repo.Offline)
@@ -300,6 +304,7 @@ func resourceRemoteRepositoryCreate(d *schema.ResourceData, m interface{}) error
 	c := m.(*artifactory.Client)
 
 	repo := unmarshalRemoteRepository(d)
+	fmt.Fprintf(os.Stderr, "Sending %s\n", *repo.Password)
 	_, err := c.Repositories.CreateRemote(context.Background(), repo)
 	if err != nil {
 		return err

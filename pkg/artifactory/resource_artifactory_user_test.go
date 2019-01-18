@@ -15,6 +15,7 @@ const user_basic = `
 resource "artifactory_user" "foobar" {
 	name  = "the.dude"
     email = "the.dude@domain.com"
+	groups      = [ "readers" ]
 }`
 
 func TestAccUser_basic(t *testing.T) {
