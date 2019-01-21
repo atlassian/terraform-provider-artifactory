@@ -1,30 +1,21 @@
-language: go
-
-go:
-  - 1.11.x
-  - master
-
-matrix:
-  allow_failures:
-  - go: master
-  fast_finish: true
-
 services:
   - docker
 
-notifications:
-  email: false
-
+language: go
+go:
+  - "1.11.x"
 env:
-  - GO111MODULE="on" TF_ACC=true ARTIFACTORY_USERNAME=admin ARTIFACTORY_PASSWORD=password ARTIFACTORY_URL=http://localhost:8080/artifactory
+  GOFLAGS=-mod=vendor
 
-before_install:
+install:
+  # Decrypt Artifactory License Key
   - openssl aes-256-cbc -K $encrypted_1d073d5eb2c7_key -iv $encrypted_1d073d5eb2c7_iv
     -in scripts/artifactory.lic.enc -out scripts/artifactory.lic -d
-  - ./scripts/run.sh
-
-install: true
 
 script:
-  - go test -v -mod=vendor -race ./...
-  - go vet ./...
+  - make testacc
+
+matrix:
+  fast_finish: true
+  allow_failures:
+    - go: tip

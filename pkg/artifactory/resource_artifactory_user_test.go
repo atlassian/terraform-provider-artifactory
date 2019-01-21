@@ -11,7 +11,7 @@ import (
 	"net/http"
 )
 
-const user_basic = `
+const userBasic = `
 resource "artifactory_user" "foobar" {
 	name  = "the.dude"
     email = "the.dude@domain.com"
@@ -25,7 +25,7 @@ func TestAccUser_basic(t *testing.T) {
 		Providers:    testAccProviders,
 		Steps: []resource.TestStep{
 			{
-				Config: user_basic,
+				Config: userBasic,
 				Check: resource.ComposeTestCheckFunc(
 					resource.TestCheckResourceAttr("artifactory_user.foobar", "name", "the.dude"),
 					resource.TestCheckResourceAttr("artifactory_user.foobar", "email", "the.dude@domain.com"),
@@ -37,7 +37,7 @@ func TestAccUser_basic(t *testing.T) {
 	})
 }
 
-const user_full = `
+const userFull = `
 resource "artifactory_user" "foobar" {
 	name        		= "dummy_user"
     email       		= "dummy@a.com"
@@ -53,7 +53,7 @@ func TestAccUser_full(t *testing.T) {
 		Providers:    testAccProviders,
 		Steps: []resource.TestStep{
 			{
-				Config: user_full,
+				Config: userFull,
 				Check: resource.ComposeTestCheckFunc(
 					resource.TestCheckResourceAttr("artifactory_user.foobar", "name", "dummy_user"),
 					resource.TestCheckResourceAttr("artifactory_user.foobar", "email", "dummy@a.com"),

@@ -10,7 +10,7 @@ import (
 	"testing"
 )
 
-const permission_basic = `
+const permissionBasic = `
 resource "artifactory_local_repository" "lib-local" {
 	key 	     = "lib-local"
 	package_type = "maven"
@@ -37,7 +37,7 @@ func TestAccPermission_basic(t *testing.T) {
 		Providers:    testAccProviders,
 		Steps: []resource.TestStep{
 			{
-				Config: permission_basic,
+				Config: permissionBasic,
 				Check: resource.ComposeTestCheckFunc(
 					resource.TestCheckResourceAttr("artifactory_permission_targets.test-perm", "name", "test-perm"),
 					resource.TestCheckResourceAttr("artifactory_permission_targets.test-perm", "repositories.#", "1"),
