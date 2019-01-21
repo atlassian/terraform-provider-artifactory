@@ -10,7 +10,7 @@ import (
 type ResourceData struct{ *schema.ResourceData }
 
 func (d *ResourceData) GetStringRef(key string) *string {
-	if v, ok := d.GetOkExists(key); ok {
+	if v, ok := d.GetOk(key); ok {
 		return artifactory.String(v.(string))
 	}
 	return nil
@@ -73,4 +73,8 @@ func GetMD5Hash(o interface{}) string {
 	hasher.Write([]byte(o.(string)))
 	hasher.Write([]byte("OQ9@#9i4$c8g$4^n%PKT8hUva3CC^5"))
 	return hex.EncodeToString(hasher.Sum(nil))
+}
+
+func MD5Diff(k, old, new string, d *schema.ResourceData) bool {
+	return old == new || GetMD5Hash(old) == new
 }

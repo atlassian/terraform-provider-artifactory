@@ -2,11 +2,9 @@ package artifactory
 
 import (
 	"context"
-	"fmt"
 	"github.com/atlassian/go-artifactory/pkg/artifactory"
 	"github.com/hashicorp/terraform/helper/schema"
 	"net/http"
-	"os"
 )
 
 func resourceArtifactoryReplicationConfig() *schema.Resource {
@@ -55,10 +53,11 @@ func resourceArtifactoryReplicationConfig() *schema.Resource {
 							Optional: true,
 						},
 						"password": {
-							Type:     schema.TypeString,
-							Optional: true,
-							//Sensitive: true,
-							StateFunc: GetMD5Hash,
+							Type:             schema.TypeString,
+							Optional:         true,
+							Sensitive:        true,
+							StateFunc:        GetMD5Hash,
+							DiffSuppressFunc: MD5Diff,
 						},
 						"enabled": {
 							Type:     schema.TypeBool,
@@ -216,7 +215,6 @@ func resourceReplicationConfigCreate(d *schema.ResourceData, m interface{}) erro
 
 	replicationConfig := unmarshalReplicationConfig(d)
 
-	fmt.Fprintf(os.Stderr, "Sending %s\n", *(*replicationConfig.Replications)[0].Password)
 	_, err := c.Artifacts.SetRepositoryReplicationConfig(context.Background(), *replicationConfig.RepoKey, replicationConfig)
 	if err != nil {
 		return err
