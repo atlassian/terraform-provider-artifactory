@@ -16,11 +16,7 @@ notifications:
   email: false
 
 env:
-  - GO111MODULE="on"
-  - TF_ACC=true
-  - ARTIFACTORY_USERNAME=admin
-  - ARTIFACTORY_PASSWORD=password
-  - ARTIFACTORY_URL=http://localhost:8080/artifactory
+  - GO111MODULE="on" TF_ACC=true ARTIFACTORY_USERNAME=admin ARTIFACTORY_PASSWORD=password ARTIFACTORY_URL=http://localhost:8080/artifactory
 
 before_install:
   - openssl aes-256-cbc -K $encrypted_1d073d5eb2c7_key -iv $encrypted_1d073d5eb2c7_iv
