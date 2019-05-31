@@ -192,9 +192,5 @@ func resourceVirtualRepositoryExists(d *schema.ResourceData, m interface{}) (boo
 	_, resp, err := c.V1.Repositories.GetVirtual(context.Background(), key)
 
 	// Cannot check for 404 because artifactory returns 400
-	if resp.StatusCode == http.StatusBadRequest {
-		return false, nil
-	}
-
-	return true, err
+	return err == nil && resp.StatusCode != http.StatusBadRequest, err
 }

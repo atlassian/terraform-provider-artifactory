@@ -160,11 +160,5 @@ func resourceGroupExists(d *schema.ResourceData, m interface{}) (bool, error) {
 	groupName := d.Id()
 	_, resp, err := c.V1.Security.GetGroup(context.Background(), groupName)
 
-	if resp.StatusCode == http.StatusNotFound {
-		return false, nil
-	} else if err != nil {
-		return false, err
-	}
-
-	return true, nil
+	return err == nil && resp.StatusCode != http.StatusNotFound, err
 }

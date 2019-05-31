@@ -375,7 +375,9 @@ func packRemoteRepo(repo *v1.RemoteRepository, d *schema.ResourceData) error {
 	logErr(d.Set("notes", repo.Notes))
 	logErr(d.Set("offline", repo.Offline))
 	logErr(d.Set("package_type", repo.PackageType))
-	logErr(d.Set("property_sets", schema.NewSet(schema.HashString, castToInterfaceArr(*repo.PropertySets))))
+	if repo.PropertySets != nil {
+		logErr(d.Set("property_sets", schema.NewSet(schema.HashString, castToInterfaceArr(*repo.PropertySets))))
+	}
 	logErr(d.Set("proxy", repo.Proxy))
 	logErr(d.Set("pypi_registry_url", repo.PyPiRegistryUrl))
 	logErr(d.Set("repo_layout_ref", repo.RepoLayoutRef))
@@ -476,9 +478,5 @@ func resourceRemoteRepositoryExists(d *schema.ResourceData, m interface{}) (bool
 	_, resp, err := c.V1.Repositories.GetRemote(context.Background(), key)
 
 	// Cannot check for 404 because artifactory returns 400
-	if resp.StatusCode == http.StatusBadRequest {
-		return false, nil
-	}
-
-	return true, err
+	return err == nil && resp.StatusCode != http.StatusBadRequest, err
 }

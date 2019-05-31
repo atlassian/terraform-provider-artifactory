@@ -385,12 +385,7 @@ func resourcePermissionTargetExists(d *schema.ResourceData, m interface{}) (bool
 	if _, ok := d.GetOk("repositories"); ok {
 		_, resp, err := c.V1.Security.GetPermissionTargets(context.Background(), d.Id())
 
-		if resp.StatusCode == http.StatusNotFound {
-			return false, nil
-		} else if err != nil {
-			return false, fmt.Errorf("error: Request failed: %s", err.Error())
-		}
-		return true, nil
+		return err == nil && resp.StatusCode != http.StatusNotFound, err
 	}
 
 	return c.V2.Security.HasPermissionTarget(context.Background(), d.Id())
