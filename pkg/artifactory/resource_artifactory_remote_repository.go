@@ -6,7 +6,7 @@ import (
 	"net/http"
 
 	"github.com/atlassian/go-artifactory/v2/artifactory"
-	"github.com/atlassian/go-artifactory/v2/artifactory/v1"
+	v1 "github.com/atlassian/go-artifactory/v2/artifactory/v1"
 	"github.com/hashicorp/terraform/helper/schema"
 	"github.com/hashicorp/terraform/helper/validation"
 )
@@ -406,7 +406,7 @@ func packRemoteRepo(repo *v1.RemoteRepository, d *schema.ResourceData) error {
 	}
 
 	if repo.Password != nil {
-		logErr(d.Set("password", getMD5Hash(*repo.Password)))
+		logErr(d.Set("password", *repo.Password))
 	}
 
 	if hasErr {

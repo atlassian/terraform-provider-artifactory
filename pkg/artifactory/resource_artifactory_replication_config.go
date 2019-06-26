@@ -186,7 +186,7 @@ func packReplicationConfig(replicationConfig *v1.ReplicationConfig, d *schema.Re
 			}
 
 			if repo.Password != nil {
-				replication["password"] = getMD5Hash(*repo.Password)
+				replication["password"] = *repo.Password
 			}
 
 			if repo.Enabled != nil {
