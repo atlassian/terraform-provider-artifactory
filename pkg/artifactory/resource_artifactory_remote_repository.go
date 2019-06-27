@@ -406,7 +406,11 @@ func packRemoteRepo(repo *v1.RemoteRepository, d *schema.ResourceData) error {
 	}
 
 	if repo.Password != nil {
-		logErr(d.Set("password", *repo.Password))
+		if d.Get("password") != nil {
+			logErr(d.Set("password", d.Get("password").(string)))
+		} else {
+			logErr(d.Set("password", *repo.Password))
+		}
 	}
 
 	if hasErr {

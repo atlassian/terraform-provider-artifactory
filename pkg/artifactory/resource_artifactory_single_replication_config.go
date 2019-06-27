@@ -3,10 +3,12 @@ package artifactory
 import (
 	"context"
 	"fmt"
+	"net/http"
+
 	"github.com/atlassian/go-artifactory/v2/artifactory"
 	"github.com/atlassian/go-artifactory/v2/artifactory/v1"
+	v1 "github.com/atlassian/go-artifactory/v2/artifactory/v1"
 	"github.com/hashicorp/terraform/helper/schema"
-	"net/http"
 )
 
 func resourceArtifactorySingleReplicationConfig() *schema.Resource {
@@ -126,7 +128,11 @@ func packSingleReplicationConfig(replicationConfig *v1.ReplicationConfig, d *sch
 	}
 
 	if firstConfig.Password != nil {
-		logErr(d.Set("password", getMD5Hash(*firstConfig.Password)))
+		if d.Get("password") != nil {
+			logErr(d.Set("password", d.Get("password").(string)))
+		} else {
+			logErr(d.Set("password", *firstConfig.Password))
+		}
 	}
 
 	if firstConfig.Enabled != nil {

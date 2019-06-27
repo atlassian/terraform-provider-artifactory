@@ -170,7 +170,7 @@ func packReplicationConfig(replicationConfig *v1.ReplicationConfig, d *schema.Re
 
 	if replicationConfig.Replications != nil {
 		var replications []map[string]interface{}
-		for _, repo := range *replicationConfig.Replications {
+		for index, repo := range *replicationConfig.Replications {
 			replication := make(map[string]interface{})
 
 			if repo.URL != nil {
@@ -186,7 +186,11 @@ func packReplicationConfig(replicationConfig *v1.ReplicationConfig, d *schema.Re
 			}
 
 			if repo.Password != nil {
-				replication["password"] = *repo.Password
+				if d.Get(fmt.Sprintf("replications.%v.password", index)) != nil {
+					replication["password"] = d.Get(fmt.Sprintf("replications.%v.password", index)).(string)
+				} else {
+					replication["password"] = *repo.Password
+				}
 			}
 
 			if repo.Enabled != nil {
