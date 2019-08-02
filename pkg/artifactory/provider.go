@@ -5,8 +5,8 @@ import (
 	"fmt"
 	"net/http"
 
-	"github.com/atlassian/go-artifactory/v2/artifactory"
-	"github.com/atlassian/go-artifactory/v2/artifactory/transport"
+	"github.com/atlassian/go-artifactory/v3/artifactory"
+	"github.com/atlassian/go-artifactory/v3/artifactory/transport"
 	"github.com/hashicorp/terraform/helper/schema"
 	"github.com/hashicorp/terraform/terraform"
 )
@@ -89,40 +89,25 @@ func providerConfigure(d *schema.ResourceData) (interface{}, error) {
 	// Deprecated
 	token := d.Get("token").(string)
 
-	var client *http.Client
+	var tp http.RoundTripper
 	if username != "" && password != "" {
-		tp := transport.BasicAuth{
-			Username: username,
-			Password: password,
-		}
-		client = tp.Client()
+		tp = transport.BasicAuth(username, password)
 	} else if apiKey != "" {
-		tp := &transport.ApiKeyAuth{
-			ApiKey: apiKey,
-		}
-		client = tp.Client()
+		tp = transport.ApiKeyAuth(apiKey)
 	} else if accessToken != "" {
-		tp := &transport.AccessTokenAuth{
-			AccessToken: accessToken,
-		}
-		client = tp.Client()
+		tp = transport.AccessTokenAuth(accessToken)
 	} else if token != "" {
-		tp := &transport.ApiKeyAuth{
-			ApiKey: token,
-		}
-		client = tp.Client()
+		tp = transport.ApiKeyAuth(token)
 	} else {
 		return nil, fmt.Errorf("either [username, password] or [api_key] or [access_token] must be set to use provider")
 	}
 
-	rt, err := artifactory.NewClient(d.Get("url").(string), client)
+	rt := artifactory.NewClient(d.Get("url").(string), tp)
 
-	if err != nil {
+	if resp, err := rt.V1.System.Ping(context.Background()); err != nil {
 		return nil, err
-	} else if _, resp, err := rt.V1.System.Ping(context.Background()); err != nil {
-		return nil, err
-	} else if resp.StatusCode != 200 {
-		return nil, fmt.Errorf("failed to ping server. Got %d", resp.StatusCode)
+	} else if resp.IsError() {
+		return nil, fmt.Errorf("failed to ping server. Got %s", resp.Status())
 	}
 
 	return rt, nil

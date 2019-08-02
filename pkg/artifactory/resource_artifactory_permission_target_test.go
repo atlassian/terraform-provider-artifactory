@@ -13,15 +13,13 @@ import (
 const permissionNoIncludes = `
 resource "artifactory_permission_target" "test-perm" {
 	name = "test-perm"
-	repo = {
+	repo {
 		repositories = ["example-repo-local"]
-		actions = {
-			users = [
-				{
-					name = "anonymous"
-					permissions = ["read", "write"]
-				},
-			]
+		actions {
+			users {
+				name = "anonymous"
+				permissions = ["read", "write"]
+			}
 		}
 	}
 }`
@@ -29,64 +27,54 @@ resource "artifactory_permission_target" "test-perm" {
 const permissionJustBuild = `
 resource "artifactory_permission_target" "test-perm" {
 	name = "test-perm"
-	build = {
+	build {
 		repositories = ["artifactory-build-info"]
-		actions = {
-			users = [
-				{
-					name = "anonymous"
-					permissions = ["read", "write"]
-				},
-			]
+		actions {
+			users {
+				name = "anonymous"
+				permissions = ["read", "write"]
+			}
 		}
 	}
 }`
 
 const permissionFull = `
 resource "artifactory_permission_target" "test-perm" {
-  name = "test-perm"
+  	name = "test-perm"
 
-  repo = {
-    includes_pattern = ["foo/**"]
-    excludes_pattern = ["bar/**"]
-    repositories     = ["example-repo-local"]
+	repo {
+		includes_pattern = ["foo/**"]
+    	excludes_pattern = ["bar/**"]
+    	repositories     = ["example-repo-local"]
 
-    actions = {
-      users = [
-        {
-          name        = "anonymous"
-          permissions = ["read", "write"]
-        },
-      ]
+		actions {
+			users {
+				name        = "anonymous"
+				permissions = ["read", "write"]
+			}
+		
+		  	groups {
+			  name        = "readers"
+			  permissions = ["read"]
+			}
+		}
+  	}
 
-      groups = [
-        {
-          name        = "readers"
-          permissions = ["read"]
-        },
-      ]
-    }
-  }
-
-  build = {
+  build {
     includes_pattern = ["foo/**"]
     excludes_pattern = ["bar/**"]
     repositories     = ["artifactory-build-info"]
 
-    actions = {
-      users = [
-        {
-          name        = "anonymous"
-          permissions = ["read", "write"]
-        },
-      ]
+    actions {
+      	users {
+			name        = "anonymous"
+			permissions = ["read", "write"]
+		}
       
-      groups = [
-        {
-          name        = "readers"
-          permissions = ["read"]
-        },
-      ]
+		groups {
+			name        = "readers"
+			permissions = ["read"]
+		}
     }
   }
 }

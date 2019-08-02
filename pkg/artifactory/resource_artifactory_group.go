@@ -3,11 +3,11 @@ package artifactory
 import (
 	"context"
 	"fmt"
-	"github.com/hashicorp/terraform/helper/resource"
 	"net/http"
 
-	"github.com/atlassian/go-artifactory/v2/artifactory"
-	"github.com/atlassian/go-artifactory/v2/artifactory/v1"
+	"github.com/atlassian/go-artifactory/v3/artifactory"
+	v1 "github.com/atlassian/go-artifactory/v3/artifactory/v1"
+	"github.com/hashicorp/terraform/helper/resource"
 	"github.com/hashicorp/terraform/helper/schema"
 )
 
@@ -81,57 +81,54 @@ func resourceGroupCreate(d *schema.ResourceData, m interface{}) error {
 	c := m.(*artifactory.Artifactory)
 
 	group, err := unmarshalGroup(d)
-
 	if err != nil {
 		return err
 	}
 
-	_, err = c.V1.Security.CreateOrReplaceGroup(context.Background(), *group.Name, group)
-
-	if err != nil {
+	if resp, err := c.V1.Security.CreateOrReplaceGroup(context.Background(), *group.Name, group); err != nil {
 		return err
+	} else if resp.IsError() {
+		return fmt.Errorf("request failed: %s %s", resp.Status(), resp)
 	}
 
 	d.SetId(*group.Name)
-	return resource.Retry(d.Timeout(schema.TimeoutCreate), func() *resource.RetryError {
-		c := m.(*artifactory.Artifactory)
-		_, resp, err := c.V1.Security.GetGroup(context.Background(), d.Id())
-		if err != nil {
-			return resource.NonRetryableError(fmt.Errorf("error describing group: %s", err))
-		}
-
-		if resp.StatusCode == http.StatusNotFound {
+	if err = resource.Retry(d.Timeout(schema.TimeoutCreate), func() *resource.RetryError {
+		if ok, err := resourceGroupExists(d, m); err != nil {
+			return resource.NonRetryableError(fmt.Errorf("error reading group: %s", err))
+		} else if !ok {
 			return resource.RetryableError(fmt.Errorf("expected group to be created, but currently not found"))
 		}
-
-		return resource.NonRetryableError(resourceGroupRead(d, m))
-	})
+		return nil
+	}); err != nil {
+		return err
+	}
+	return resourceGroupRead(d, m)
 }
 
 func resourceGroupRead(d *schema.ResourceData, m interface{}) error {
-	c := m.(*artifactory.Artifactory)
+	rt := m.(*artifactory.Artifactory)
 
-	group, resp, err := c.V1.Security.GetGroup(context.Background(), d.Id())
+	group, resp, err := rt.V1.Security.GetGroup(context.Background(), d.Id())
 
-	// If we 404 it is likely the resources was externally deleted
-	// If the ID is updated to blank, this tells Terraform the resource no longer exist
-	if resp.StatusCode == http.StatusNotFound {
-		d.SetId("")
-		return nil
-	} else if err != nil {
+	if err != nil {
 		return err
+	} else if resp.IsError() {
+		if resp.StatusCode() == http.StatusNotFound {
+			d.SetId("")
+			return nil
+		}
+		return fmt.Errorf("request failed: %s %s", resp.Status(), resp)
 	}
 
-	hasErr := false
-	logError := cascadingErr(&hasErr)
-	logError(d.Set("name", group.Name))
-	logError(d.Set("description", group.Description))
-	logError(d.Set("auto_join", group.AutoJoin))
-	logError(d.Set("admin_privileges", group.AdminPrivileges))
-	logError(d.Set("realm", group.Realm))
-	logError(d.Set("realm_attributes", group.RealmAttributes))
-	if hasErr {
-		return fmt.Errorf("failed to marshal group")
+	echain, errs := chainError()
+	echain(d.Set("name", group.Name))
+	echain(d.Set("description", group.Description))
+	echain(d.Set("auto_join", group.AutoJoin))
+	echain(d.Set("admin_privileges", group.AdminPrivileges))
+	echain(d.Set("realm", group.Realm))
+	echain(d.Set("realm_attributes", group.RealmAttributes))
+	if len(errs) != 0 {
+		return fmt.Errorf("failed to marshal group: %v", errs)
 	}
 	return nil
 }
@@ -142,9 +139,12 @@ func resourceGroupUpdate(d *schema.ResourceData, m interface{}) error {
 	if err != nil {
 		return err
 	}
-	_, err = c.V1.Security.UpdateGroup(context.Background(), d.Id(), group)
+
+	resp, err := c.V1.Security.UpdateGroup(context.Background(), d.Id(), group)
 	if err != nil {
 		return err
+	} else if resp.IsError() {
+		return fmt.Errorf("request failed: %s %s", resp.Status(), resp)
 	}
 
 	d.SetId(*group.Name)
@@ -158,25 +158,29 @@ func resourceGroupDelete(d *schema.ResourceData, m interface{}) error {
 		return err
 	}
 
-	_, resp, err := c.V1.Security.DeleteGroup(context.Background(), *group.Name)
-
-	if err != nil && resp.StatusCode == http.StatusNotFound {
-		return nil
+	if resp, err := c.V1.Security.DeleteGroup(context.Background(), *group.Name); err != nil {
+		return err
+	} else if resp.IsError() {
+		if resp.StatusCode() == http.StatusNotFound {
+			d.SetId("")
+			return nil
+		}
+		return fmt.Errorf("request failed: %s %s", resp.Status(), resp)
 	}
-
-	return err
+	return nil
 }
 
 func resourceGroupExists(d *schema.ResourceData, m interface{}) (bool, error) {
-	c := m.(*artifactory.Artifactory)
+	rt := m.(*artifactory.Artifactory)
 
-	groupName := d.Id()
-	_, resp, err := c.V1.Security.GetGroup(context.Background(), groupName)
-
-	if resp.StatusCode == http.StatusNotFound {
-		return false, nil
-	} else if err != nil {
+	_, resp, err := rt.V1.Security.GetGroup(context.Background(), d.Id())
+	if err != nil {
 		return false, err
+	} else if resp.IsError() {
+		if resp.StatusCode() == http.StatusNotFound {
+			return false, nil
+		}
+		return false, fmt.Errorf("request failed: %s %s", resp.Status(), resp)
 	}
 
 	return true, nil

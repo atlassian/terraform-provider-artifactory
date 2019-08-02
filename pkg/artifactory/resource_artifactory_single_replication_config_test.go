@@ -47,7 +47,7 @@ func TestAccSingleReplication_full(t *testing.T) {
 					resource.TestCheckResourceAttr("artifactory_single_replication_config.lib-local", "enable_event_replication", "true"),
 					resource.TestCheckResourceAttr("artifactory_single_replication_config.lib-local", "url", os.Getenv("ARTIFACTORY_URL")),
 					resource.TestCheckResourceAttr("artifactory_single_replication_config.lib-local", "username", os.Getenv("ARTIFACTORY_USERNAME")),
-					resource.TestCheckResourceAttr("artifactory_single_replication_config.lib-local", "password", os.Getenv("ARTIFACTORY_PASSWORD")),
+					resource.TestCheckResourceAttr("artifactory_single_replication_config.lib-local", "password", getMD5Hash(os.Getenv("ARTIFACTORY_PASSWORD"))),
 				),
 			},
 		},

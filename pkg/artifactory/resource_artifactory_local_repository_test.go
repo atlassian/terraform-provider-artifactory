@@ -6,7 +6,7 @@ import (
 	"net/http"
 	"testing"
 
-	"github.com/atlassian/go-artifactory/v2/artifactory"
+	"github.com/atlassian/go-artifactory/v3/artifactory"
 	"github.com/hashicorp/terraform/helper/resource"
 	"github.com/hashicorp/terraform/terraform"
 )
@@ -107,7 +107,7 @@ func resourceLocalRepositoryCheckDestroy(id string) func(*terraform.State) error
 
 		_, resp, err := client.V1.Repositories.GetLocal(context.Background(), rs.Primary.ID)
 
-		if resp.StatusCode == http.StatusNotFound || resp.StatusCode == http.StatusBadRequest {
+		if resp.StatusCode() == http.StatusNotFound || resp.StatusCode() == http.StatusBadRequest {
 			return nil
 		} else if err != nil {
 			return fmt.Errorf("error: Request failed: %s", err.Error())

@@ -5,8 +5,8 @@ import (
 	"fmt"
 	"net/http"
 
-	"github.com/atlassian/go-artifactory/v2/artifactory"
-	v1 "github.com/atlassian/go-artifactory/v2/artifactory/v1"
+	"github.com/atlassian/go-artifactory/v3/artifactory"
+	v1 "github.com/atlassian/go-artifactory/v3/artifactory/v1"
 	"github.com/hashicorp/terraform/helper/schema"
 )
 
@@ -172,13 +172,14 @@ func unmarshalLocalRepository(s *schema.ResourceData) *v1.LocalRepository {
 }
 
 func resourceLocalRepositoryCreate(d *schema.ResourceData, m interface{}) error {
-	c := m.(*artifactory.Artifactory)
-
+	rt := m.(*artifactory.Artifactory)
 	repo := unmarshalLocalRepository(d)
 
-	_, err := c.V1.Repositories.CreateLocal(context.Background(), repo)
+	resp, err := rt.V1.Repositories.CreateLocal(context.Background(), repo)
 	if err != nil {
 		return err
+	} else if resp.IsError() {
+		return fmt.Errorf("request failed: %s %s", resp.Status(), resp)
 	}
 
 	d.SetId(*repo.Key)
@@ -186,56 +187,61 @@ func resourceLocalRepositoryCreate(d *schema.ResourceData, m interface{}) error 
 }
 
 func resourceLocalRepositoryRead(d *schema.ResourceData, m interface{}) error {
-	c := m.(*artifactory.Artifactory)
+	rt := m.(*artifactory.Artifactory)
 
-	repo, resp, err := c.V1.Repositories.GetLocal(context.Background(), d.Id())
-
-	if resp.StatusCode == http.StatusNotFound {
-		d.SetId("")
-	} else if err == nil {
-		hasErr := false
-		logError := cascadingErr(&hasErr)
-
-		logError(d.Set("key", repo.Key))
-		logError(d.Set("package_type", repo.PackageType))
-		logError(d.Set("description", repo.Description))
-		logError(d.Set("notes", repo.Notes))
-		logError(d.Set("includes_pattern", repo.IncludesPattern))
-		logError(d.Set("excludes_pattern", repo.ExcludesPattern))
-		logError(d.Set("repo_layout_ref", repo.RepoLayoutRef))
-		logError(d.Set("debian_trivial_layout", repo.DebianTrivialLayout))
-		logError(d.Set("max_unique_tags", repo.MaxUniqueTags))
-		logError(d.Set("blacked_out", repo.BlackedOut))
-		logError(d.Set("archive_browsing_enabled", repo.ArchiveBrowsingEnabled))
-		logError(d.Set("calculate_yum_metadata", repo.CalculateYumMetadata))
-		logError(d.Set("yum_root_depth", repo.YumRootDepth))
-		logError(d.Set("docker_api_version", repo.DockerApiVersion))
-		logError(d.Set("enable_file_lists_indexing", repo.EnableFileListsIndexing))
-		logError(d.Set("property_sets", schema.NewSet(schema.HashString, castToInterfaceArr(*repo.PropertySets))))
-		logError(d.Set("handle_releases", repo.HandleReleases))
-		logError(d.Set("handle_snapshots", repo.HandleSnapshots))
-		logError(d.Set("checksum_policy_type", repo.ChecksumPolicyType))
-		logError(d.Set("max_unique_snapshots", repo.MaxUniqueSnapshots))
-		logError(d.Set("snapshot_version_behavior", repo.SnapshotVersionBehavior))
-		logError(d.Set("suppress_pom_consistency_checks", repo.SuppressPomConsistencyChecks))
-		logError(d.Set("xray_index", repo.XrayIndex))
-
-		if hasErr {
-			return fmt.Errorf("failed to marshal group")
+	repo, resp, err := rt.V1.Repositories.GetLocal(context.Background(), d.Id())
+	if err != nil {
+		return err
+	} else if resp.IsError() {
+		if resp.StatusCode() == http.StatusNotFound {
+			d.SetId("")
+			return nil
 		}
+		return fmt.Errorf("request failed: %s %s", resp.Status(), resp)
 	}
 
-	return err
+	errchain, errs := chainError()
+
+	errchain(d.Set("key", repo.Key))
+	errchain(d.Set("package_type", repo.PackageType))
+	errchain(d.Set("description", repo.Description))
+	errchain(d.Set("notes", repo.Notes))
+	errchain(d.Set("includes_pattern", repo.IncludesPattern))
+	errchain(d.Set("excludes_pattern", repo.ExcludesPattern))
+	errchain(d.Set("repo_layout_ref", repo.RepoLayoutRef))
+	errchain(d.Set("debian_trivial_layout", repo.DebianTrivialLayout))
+	errchain(d.Set("max_unique_tags", repo.MaxUniqueTags))
+	errchain(d.Set("blacked_out", repo.BlackedOut))
+	errchain(d.Set("archive_browsing_enabled", repo.ArchiveBrowsingEnabled))
+	errchain(d.Set("calculate_yum_metadata", repo.CalculateYumMetadata))
+	errchain(d.Set("yum_root_depth", repo.YumRootDepth))
+	errchain(d.Set("docker_api_version", repo.DockerApiVersion))
+	errchain(d.Set("enable_file_lists_indexing", repo.EnableFileListsIndexing))
+	errchain(d.Set("property_sets", schema.NewSet(schema.HashString, castToInterfaceArr(*repo.PropertySets))))
+	errchain(d.Set("handle_releases", repo.HandleReleases))
+	errchain(d.Set("handle_snapshots", repo.HandleSnapshots))
+	errchain(d.Set("checksum_policy_type", repo.ChecksumPolicyType))
+	errchain(d.Set("max_unique_snapshots", repo.MaxUniqueSnapshots))
+	errchain(d.Set("snapshot_version_behavior", repo.SnapshotVersionBehavior))
+	errchain(d.Set("suppress_pom_consistency_checks", repo.SuppressPomConsistencyChecks))
+	errchain(d.Set("xray_index", repo.XrayIndex))
+
+	if len(errs) != 0 {
+		return fmt.Errorf("failed to marshal group: %v", errs)
+	}
+
+	return nil
 }
 
 func resourceLocalRepositoryUpdate(d *schema.ResourceData, m interface{}) error {
-	c := m.(*artifactory.Artifactory)
+	rt := m.(*artifactory.Artifactory)
 
 	repo := unmarshalLocalRepository(d)
-	_, err := c.V1.Repositories.UpdateLocal(context.Background(), d.Id(), repo)
-
+	resp, err := rt.V1.Repositories.UpdateLocal(context.Background(), d.Id(), repo)
 	if err != nil {
 		return err
+	} else if resp.IsError() {
+		return fmt.Errorf("request failed: %s %s", resp.Status(), resp)
 	}
 
 	d.SetId(*repo.Key)
@@ -247,23 +253,30 @@ func resourceLocalRepositoryDelete(d *schema.ResourceData, m interface{}) error 
 	repo := unmarshalLocalRepository(d)
 
 	resp, err := c.V1.Repositories.DeleteLocal(context.Background(), *repo.Key)
-
-	if resp.StatusCode == http.StatusNotFound {
-		return nil
+	if err != nil {
+		return err
+	} else if resp.IsError() {
+		if resp.StatusCode() == http.StatusNotFound {
+			d.SetId("")
+			return nil
+		}
+		return fmt.Errorf("request failed: %s %s", resp.Status(), resp)
 	}
-
-	return err
+	return nil
 }
 
 func resourceLocalRepositoryExists(d *schema.ResourceData, m interface{}) (bool, error) {
 	c := m.(*artifactory.Artifactory)
 
 	_, resp, err := c.V1.Repositories.GetLocal(context.Background(), d.Id())
-
-	// Cannot check for 404 because artifactory returns 400
-	if resp.StatusCode == http.StatusBadRequest {
-		return false, nil
+	if err != nil {
+		return false, err
+	} else if resp.IsError() {
+		if resp.StatusCode() == http.StatusNotFound {
+			return false, nil
+		}
+		return false, fmt.Errorf("request failed: %s %s", resp.Status(), resp)
 	}
 
-	return true, err
+	return true, nil
 }

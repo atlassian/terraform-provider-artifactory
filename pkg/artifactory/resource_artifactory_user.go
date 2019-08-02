@@ -5,10 +5,11 @@ import (
 	"crypto/md5"
 	"encoding/base64"
 	"fmt"
-	"github.com/hashicorp/terraform/helper/resource"
 	"math/rand"
 	"net/http"
 	"os"
+
+	"github.com/hashicorp/terraform/helper/resource"
 
 	"github.com/atlassian/go-artifactory/v2/artifactory"
 	v1 "github.com/atlassian/go-artifactory/v2/artifactory/v1"

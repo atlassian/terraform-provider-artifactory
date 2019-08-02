@@ -3,11 +3,12 @@ package artifactory
 import (
 	"context"
 	"fmt"
-	"github.com/hashicorp/terraform/helper/resource"
 	"net/http"
 
-	"github.com/atlassian/go-artifactory/v2/artifactory"
-	v2 "github.com/atlassian/go-artifactory/v2/artifactory/v2"
+	"github.com/hashicorp/terraform/helper/resource"
+
+	"github.com/atlassian/go-artifactory/v3/artifactory"
+	v2 "github.com/atlassian/go-artifactory/v3/artifactory/v2"
 	"github.com/hashicorp/terraform/helper/schema"
 	"github.com/hashicorp/terraform/helper/validation"
 )
@@ -138,14 +139,14 @@ func resourceArtifactoryPermissionTarget() *schema.Resource {
 			"includes_pattern": {
 				Type:          schema.TypeString,
 				Optional:      true,
-				Default:       "**",
+				Computed:      true,
 				Deprecated:    "Since Artifactory 6.6.0+ (provider 1.5). Use /api/v2 endpoint",
 				ConflictsWith: []string{"repo", "build"},
 			},
 			"excludes_pattern": {
 				Type:          schema.TypeString,
 				Optional:      true,
-				Default:       "",
+				Computed:      true,
 				Deprecated:    "Since Artifactory 6.6.0+ (provider 1.5). Use /api/v2 endpoint",
 				ConflictsWith: []string{"repo", "build"},
 			},

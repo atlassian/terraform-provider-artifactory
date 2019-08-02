@@ -26,22 +26,22 @@ func (d *ResourceData) getBoolRef(key string, onlyIfChanged bool) *bool {
 }
 
 func (d *ResourceData) getIntRef(key string, onlyIfChanged bool) *int {
-	if v, ok := d.GetOkExists(key); ok && (!onlyIfChanged || d.HasChange(key)) {
+	if v, ok := d.GetOk(key); ok && (!onlyIfChanged || d.HasChange(key)) {
 		return artifactory.Int(v.(int))
 	}
 	return nil
 }
 
 func (d *ResourceData) getSetRef(key string) *[]string {
-	if v, ok := d.GetOkExists(key); ok {
+	if v, ok := d.GetOk(key); ok {
 		arr := castToStringArr(v.(*schema.Set).List())
 		return &arr
 	}
-	return new([]string)
+	return nil
 }
 
 func (d *ResourceData) getListRef(key string) *[]string {
-	if v, ok := d.GetOkExists(key); ok {
+	if v, ok := d.GetOk(key); ok {
 		arr := castToStringArr(v.([]interface{}))
 		return &arr
 	}
@@ -87,4 +87,14 @@ func cascadingErr(hasErr *bool) func(error) {
 			*hasErr = true
 		}
 	}
+}
+
+func chainError() (func(error), []error) {
+	errs := make([]error, 0)
+
+	return func(err error) {
+		if err != nil {
+			errs = append(errs, err)
+		}
+	}, errs
 }

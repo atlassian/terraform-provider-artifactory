@@ -1,7 +1,3 @@
-TEST?=./...
-GOFMT_FILES?=$$(find . -name '*.go' |grep -v vendor)
-PKG_NAME=pkg/artifactory
-
 default: build
 
 build: fmtcheck
@@ -9,7 +5,7 @@ build: fmtcheck
 
 test:
 	@echo "==> Starting unit tests"
-	go test $(TEST) -timeout=30s -parallel=4
+	go test ./... -timeout=30s -parallel=4
 
 artifactory:
 	@echo "==> Launching Artifactory in Docker..."
@@ -21,12 +17,12 @@ docker:
 testacc: fmtcheck artifactory
 	@echo "==> Starting integration tests"
 	TF_ACC=1 ARTIFACTORY_USERNAME=admin ARTIFACTORY_PASSWORD=password ARTIFACTORY_URL=http://localhost:8080/artifactory \
-	go test $(TEST) -v -parallel 20 $(TESTARGS) -timeout 120m
+	go test ./... -v -parallel 20 $(TESTARGS) -timeout 120m
 	@docker stop artifactory
 
 fmt:
 	@echo "==> Fixing source code with gofmt..."
-	gofmt -s -w ./$(PKG_NAME)
+	gofmt -s -w pkg/artifactory
 	goimports -w pkg/artifactory
 
 fmtcheck:

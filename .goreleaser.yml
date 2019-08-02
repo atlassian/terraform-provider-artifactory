@@ -1,0 +1,24 @@
+before:
+  hooks:
+    - go mod download
+builds:
+  - env:
+      - CGO_ENABLED=0
+    goarch:
+      - amd64
+    goos:
+      - darwin
+      - linux
+      - windows
+archives:
+  - replacements:
+      '386': i386
+      amd64: x86_64
+checksum:
+  name_template: checksums.txt
+snapshot:
+  name_template: '{{ .Tag }}-next'
+changelog:
+  sort: asc
+release:
+  prerelease: auto

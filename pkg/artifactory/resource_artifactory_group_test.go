@@ -6,7 +6,7 @@ import (
 	"net/http"
 	"testing"
 
-	"github.com/atlassian/go-artifactory/v2/artifactory"
+	"github.com/atlassian/go-artifactory/v3/artifactory"
 	"github.com/hashicorp/terraform/helper/resource"
 	"github.com/hashicorp/terraform/terraform"
 )
@@ -72,7 +72,7 @@ func testAccCheckGroupDestroy(id string) func(*terraform.State) error {
 
 		_, resp, err := client.V1.Security.GetGroup(context.Background(), rs.Primary.ID)
 
-		if resp.StatusCode == http.StatusNotFound {
+		if resp.StatusCode() == http.StatusNotFound {
 			return nil
 		} else if err != nil {
 			return fmt.Errorf("error: Request failed: %s", err.Error())
