@@ -285,11 +285,26 @@ func unpackRemoteRepo(s *schema.ResourceData) *v1.RemoteRepository {
 	d := &ResourceData{s}
 	repo := new(v1.RemoteRepository)
 
+	repo.PackageType = d.getStringRef("package_type")
+	// The following flags only are allowable in an Update API call
+	// for particular package types.
+	if *repo.PackageType == "bower" {
+		repo.BowerRegistryURL = d.getStringRef("bower_registry_url")
+	}
+	if *repo.PackageType == "vcs" {
+		repo.VcsGitDownloadUrl = d.getStringRef("vcs_git_download_url")
+		repo.VcsGitProvider = d.getStringRef("vcs_git_provider")
+		repo.VcsType = d.getStringRef("vcs_type")
+	}
+	if *repo.PackageType == "nuget" {
+		repo.FeedContextPath = d.getStringRef("feed_context_path")
+		repo.DownloadContextPath = d.getStringRef("download_context_path")
+		repo.V3FeedUrl = d.getStringRef("v3_feed_url")
+	}
 	repo.RemoteRepoChecksumPolicyType = d.getStringRef("remote_repo_checksum_policy_type")
 	repo.AllowAnyHostAuth = d.getBoolRef("allow_any_host_auth")
 	repo.BlackedOut = d.getBoolRef("blacked_out")
 	repo.BlockMismatchingMimeTypes = d.getBoolRef("block_mismatching_mime_types")
-	repo.BowerRegistryURL = d.getStringRef("bower_registry_url")
 	repo.BypassHeadRequests = d.getBoolRef("bypass_head_requests")
 	repo.ClientTLSCertificate = d.getStringRef("client_tls_certificate")
 	repo.Description = d.getStringRef("description")
@@ -308,7 +323,6 @@ func unpackRemoteRepo(s *schema.ResourceData) *v1.RemoteRepository {
 	repo.MissedRetrievalCachePeriodSecs = d.getIntRef("missed_cache_period_seconds")
 	repo.Notes = d.getStringRef("notes")
 	repo.Offline = d.getBoolRef("offline")
-	repo.PackageType = d.getStringRef("package_type")
 	repo.Password = d.getStringRef("password")
 	repo.PropertySets = d.getSetRef("property_sets")
 	repo.Proxy = d.getStringRef("proxy")
@@ -324,13 +338,7 @@ func unpackRemoteRepo(s *schema.ResourceData) *v1.RemoteRepository {
 	repo.UnusedArtifactsCleanupPeriodHours = d.getIntRef("unused_artifacts_cleanup_period_hours")
 	repo.Url = d.getStringRef("url")
 	repo.Username = d.getStringRef("username")
-	repo.VcsGitDownloadUrl = d.getStringRef("vcs_git_download_url")
-	repo.VcsGitProvider = d.getStringRef("vcs_git_provider")
-	repo.VcsType = d.getStringRef("vcs_type")
 	repo.XrayIndex = d.getBoolRef("xray_index")
-	repo.FeedContextPath = d.getStringRef("feed_context_path")
-	repo.DownloadContextPath = d.getStringRef("download_context_path")
-	repo.V3FeedUrl = d.getStringRef("v3_feed_url")
 	if v, ok := d.GetOk("nuget"); ok {
 		nugetConfig := v.([]interface{})[0].(map[string]interface{})
 		feedContextPath := nugetConfig["feed_context_path"].(string)
