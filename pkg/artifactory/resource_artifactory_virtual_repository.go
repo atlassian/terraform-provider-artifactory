@@ -67,6 +67,11 @@ func resourceArtifactoryVirtualRepository() *schema.Resource {
 				Type:     schema.TypeBool,
 				Optional: true,
 			},
+			"virtual_retrieval_cache_period_seconds": {
+				Type:     schema.TypeInt,
+				Optional: true,
+				Computed: true,
+			},
 			"key_pair": {
 				Type:     schema.TypeString,
 				Optional: true,
@@ -96,6 +101,7 @@ func unpackVirtualRepository(s *schema.ResourceData) *v1.VirtualRepository {
 	repo.RepoLayoutRef = d.getStringRef("repo_layout_ref", false)
 	repo.DebianTrivialLayout = d.getBoolRef("debian_trivial_layout", false)
 	repo.ArtifactoryRequestsCanRetrieveRemoteArtifacts = d.getBoolRef("artifactory_requests_can_retrieve_remote_artifacts", false)
+	repo.VirtualRetrievalCachePeriodSecs =  d.getIntRef("virtual_retrieval_cache_period_seconds", false)
 	repo.Repositories = d.getListRef("repositories")
 	repo.Description = d.getStringRef("description", false)
 	repo.Notes = d.getStringRef("notes", false)
@@ -119,6 +125,7 @@ func packVirtualRepository(repo *v1.VirtualRepository, d *schema.ResourceData) e
 	logErr(d.Set("repo_layout_ref", repo.RepoLayoutRef))
 	logErr(d.Set("debian_trivial_layout", repo.DebianTrivialLayout))
 	logErr(d.Set("artifactory_requests_can_retrieve_remote_artifacts", repo.ArtifactoryRequestsCanRetrieveRemoteArtifacts))
+	logErr(d.Set("virtual_retrieval_cache_period_seconds", repo.VirtualRetrievalCachePeriodSecs))
 	logErr(d.Set("key_pair", repo.KeyPair))
 	logErr(d.Set("pom_repository_references_cleanup_policy", repo.PomRepositoryReferencesCleanupPolicy))
 	logErr(d.Set("default_deployment_repo", repo.DefaultDeploymentRepo))

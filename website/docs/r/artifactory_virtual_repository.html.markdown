@@ -50,6 +50,7 @@ Arguments have a one to one mapping with the [JFrog API](https://www.jfrog.com/c
 * `key_pair` - (Optional)
 * `pom_repository_references_cleanup_policy` - (Optional)
 * `default_deployment_repo` - (Optional)
+* `virtual_retrieval_cache_period_seconds` - (Optional)
 
 ## Import
 
