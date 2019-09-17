@@ -1,5 +1,5 @@
 # Fetch the dependencies
-FROM golang:1.12-alpine AS builder
+FROM golang:1.13-alpine AS builder
 
 RUN apk add --update ca-certificates git gcc g++ libc-dev
 WORKDIR /src/
