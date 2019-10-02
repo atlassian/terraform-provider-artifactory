@@ -37,9 +37,10 @@ func testAccPreCheck(t *testing.T) {
 	password := os.Getenv("ARTIFACTORY_PASSWORD")
 	apiKey := os.Getenv("ARTIFACTORY_APIKEY")
 	accessToken := os.Getenv("ARTIFACTORY_ACCESS_TOKEN")
+	unixSocket := os.Getenv("ARTIFACTORY_UNIX_SOCKET")
 
-	if (username == "" || password == "") && apiKey == "" && accessToken == "" {
-		t.Fatal("either ARTIFACTORY_USERNAME/ARTIFACTORY_PASSWORD or ARTIFACTORY_APIKEY  or ARTIFACTORY_ACCESS_TOKEN must be set for acceptance test")
+	if (username == "" || password == "") && apiKey == "" && accessToken == "" && unixSocket == "" {
+		t.Fatal("either ARTIFACTORY_USERNAME/ARTIFACTORY_PASSWORD or ARTIFACTORY_APIKEY  or ARTIFACTORY_ACCESS_TOKEN or ARTIFACTORY_UNIX_SOCKET must be set for acceptance test")
 	}
 
 	err := testAccProvider.Configure(terraform.NewResourceConfig(nil))
