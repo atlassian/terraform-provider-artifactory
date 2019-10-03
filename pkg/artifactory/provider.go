@@ -62,7 +62,6 @@ func Provider() terraform.ResourceProvider {
 			"unix_socket": {
 				Type:          schema.TypeString,
 				Optional:      true,
-				Sensitive:     true,
 				DefaultFunc:   schema.EnvDefaultFunc("ARTIFACTORY_UNIX_SOCKET", nil),
 				ConflictsWith: []string{"username", "password", "api_key", "access_token"},
 			},
