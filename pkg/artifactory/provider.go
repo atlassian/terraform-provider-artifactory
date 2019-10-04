@@ -3,12 +3,15 @@ package artifactory
 import (
 	"context"
 	"fmt"
+	"net"
 	"net/http"
+	"time"
 
 	"github.com/atlassian/go-artifactory/v2/artifactory"
 	"github.com/atlassian/go-artifactory/v2/artifactory/transport"
 	"github.com/hashicorp/terraform/helper/schema"
 	"github.com/hashicorp/terraform/terraform"
+	"github.com/mitchellh/go-homedir"
 )
 
 // Artifactory Provider that supports configuration via username+password or a token
@@ -56,6 +59,12 @@ func Provider() terraform.ResourceProvider {
 				DefaultFunc:   schema.EnvDefaultFunc("ARTIFACTORY_ACCESS_TOKEN", nil),
 				ConflictsWith: []string{"username", "api_key", "password"},
 			},
+			"unix_socket": {
+				Type:          schema.TypeString,
+				Optional:      true,
+				DefaultFunc:   schema.EnvDefaultFunc("ARTIFACTORY_UNIX_SOCKET", nil),
+				ConflictsWith: []string{"username", "password", "api_key", "access_token"},
+			},
 		},
 
 		ResourcesMap: map[string]*schema.Resource{
@@ -85,6 +94,7 @@ func providerConfigure(d *schema.ResourceData) (interface{}, error) {
 	password := d.Get("password").(string)
 	apiKey := d.Get("api_key").(string)
 	accessToken := d.Get("access_token").(string)
+	unixSocket := d.Get("unix_socket").(string)
 
 	// Deprecated
 	token := d.Get("token").(string)
@@ -111,8 +121,24 @@ func providerConfigure(d *schema.ResourceData) (interface{}, error) {
 			ApiKey: token,
 		}
 		client = tp.Client()
+	} else if unixSocket != "" {
+		expandedUnixSocket, err := homedir.Expand(unixSocket)
+		if err != nil {
+			return nil, fmt.Errorf("error expanding unix_socket '%s'", unixSocket)
+		}
+		tp := &http.Transport{
+			DialContext: func(_ context.Context, _, _ string) (net.Conn, error) {
+				return net.Dial("unix", expandedUnixSocket)
+			},
+			DisableKeepAlives:     true,
+			ResponseHeaderTimeout: 30 * time.Second,
+			ExpectContinueTimeout: 10 * time.Second,
+		}
+		client = &http.Client{
+			Transport: tp,
+		}
 	} else {
-		return nil, fmt.Errorf("either [username, password] or [api_key] or [access_token] must be set to use provider")
+		return nil, fmt.Errorf("either [username, password] or [api_key] or [access_token] or [unix_socket] must be set to use provider")
 	}
 
 	rt, err := artifactory.NewClient(d.Get("url").(string), client)

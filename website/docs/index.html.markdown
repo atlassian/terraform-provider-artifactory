@@ -48,6 +48,7 @@ The Artifactory provider supports multiple means of authentication. The followin
     * Basic Auth
     * Bearer Token
     * JFrog API Key Header
+    * Unix socket
 
 ### Basic Auth
 Basic auth may be used by adding a `username` and `password` field to the provider block
@@ -89,6 +90,19 @@ provider "artifactory" {
 }
 ```
 
+### Unix socket
+Authentication added by proxy listening to unix socket.
+
+Usage:
+```hcl
+# Configure the Artifactory provider
+provider "artifactory" {
+  url = "artifactory.site.com"
+  unix_socket = "~/.authproxy"
+}
+```
+
+
 ## Argument Reference
 
 The following arguments are supported:
@@ -102,3 +116,5 @@ The following arguments are supported:
     Conflicts with `username`, `password`, and `access_token`. This can also be sourced from the `ARTIFACTORY_API_KEY` environment variable.
 * `access_token` - (Optional) API key for token auth. Uses `Authorization: Bearer` header. 
     Conflicts with `username` and `password`, and `api_key`. This can also be sourced from the `ARTIFACTORY_ACCESS_TOKEN` environment variable.
+* `unix_socket` - (Optional) Path to unix socket opened by authenticating proxy.
+    Conflicts with `username` and `password`, `api_key`, and `access_token`. This can also be sourced from the `ARTIFACTORY_UNIX_SOCKET` environment variable.
