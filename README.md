@@ -1,3 +1,9 @@
+# **DEPRECATED** - Please use [jfrog/terraform-provider-artifactory](https://github.com/jfrog/terraform-provider-artifactory) instead
+
+<details>
+
+  <summary>Deprecated - Terraform Provider Artifactory</summary>
+
 # Terraform Provider Artifactory
 
 [![Actions Status](https://github.com/atlassian/terraform-provider-artifactory/workflows/build/badge.svg)](https://github.com/atlassian/terraform-provider-artifactory/actions)
@@ -78,3 +84,5 @@ Copyright (c) 2019 Atlassian and others. Apache 2.0 licensed, see [LICENSE][LICE
 
 [CONTRIBUTING]: .github/CONTRIBUTING.md
 [LICENSE]: ./LICENSE
+
+</details>
