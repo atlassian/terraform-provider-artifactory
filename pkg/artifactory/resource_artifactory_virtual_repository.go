@@ -80,6 +80,10 @@ func resourceArtifactoryVirtualRepository() *schema.Resource {
 				Type:     schema.TypeString,
 				Optional: true,
 			},
+			"resolve_docker_tags_by_timestamp": {
+				Type:     schema.TypeBool,
+				Optional: true,
+			},
 		},
 	}
 }
@@ -102,6 +106,7 @@ func unpackVirtualRepository(s *schema.ResourceData) *v1.VirtualRepository {
 	repo.KeyPair = d.getStringRef("key_pair", false)
 	repo.PomRepositoryReferencesCleanupPolicy = d.getStringRef("pom_repository_references_cleanup_policy", false)
 	repo.DefaultDeploymentRepo = d.getStringRef("default_deployment_repo", false)
+	repo.ResolveDockerTagsByTimestamp  = d.getBoolRef("resolve_docker_tags_by_timestamp", false)
 
 	return repo
 }
@@ -123,6 +128,7 @@ func packVirtualRepository(repo *v1.VirtualRepository, d *schema.ResourceData) e
 	logErr(d.Set("pom_repository_references_cleanup_policy", repo.PomRepositoryReferencesCleanupPolicy))
 	logErr(d.Set("default_deployment_repo", repo.DefaultDeploymentRepo))
 	logErr(d.Set("repositories", repo.Repositories))
+	logErr(d.Set("resolve_docker_tags_by_timestamp", repo.ResolveDockerTagsByTimestamp))
 
 	if hasErr {
 		return fmt.Errorf("failed to pack virtual repo")
