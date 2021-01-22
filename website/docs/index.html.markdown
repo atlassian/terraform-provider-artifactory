@@ -62,7 +62,7 @@ Usage:
 ```hcl
 # Configure the Artifactory provider
 provider "artifactory" {
-  url = "artifactory.site.com"
+  url = "artifactory.site.com/artifactory"
   username = "myusername"
   password = "mypassword"
 }
@@ -76,7 +76,7 @@ Usage:
 ```hcl
 # Configure the Artifactory provider
 provider "artifactory" {
-  url = "artifactory.site.com"
+  url = "artifactory.site.com/artifactory"
   access_token = "abc...xy"
 }
 ```
@@ -89,7 +89,7 @@ Usage:
 ```hcl
 # Configure the Artifactory provider
 provider "artifactory" {
-  url = "artifactory.site.com"
+  url = "artifactory.site.com/artifactory"
   api_key = "abc...xy"
 }
 ```
